@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบระดับอุดมศึกษา: หลักการและเทคโนโลยีการขยายพันธุ์พืช</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1b5e20;
+            --primary-light: #4c8c4a;
+            --secondary: #f1f8e9;
+            --accent: #ff8f00;
+            --text-dark: #263238;
+            --danger: #c62828;
+            --success: #2e7d32;
+        }
+        * { box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            color: var(--text-dark);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 750px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 35px;
+            transition: all 0.3s ease;
+        }
+        h1 { color: var(--primary); margin-top: 0; font-size: 1.8rem; text-align: center; }
+        p.subtitle { text-align: center; color: #546e7a; margin-bottom: 25px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #cfd8dc;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus { outline: none; border-color: var(--primary); }
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn:hover { background-color: var(--primary-light); }
+        .btn:active { transform: scale(0.99); }
+        .btn:disabled { background-color: #90a4ae; cursor: not-allowed; }
+        
+        /* Quiz Area */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #eceff1;
+            border-radius: 10px;
+            height: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #102027;
+        }
+        .options-grid { display: flex; flex-direction: column; gap: 12px; }
+        .option-btn {
+            background: var(--secondary);
+            border: 2px solid #c5e1a5;
+            padding: 15px 18px;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1.5;
+        }
+        .option-btn:hover:not(:disabled) {
+            background: #dcedc8;
+            border-color: var(--primary);
+        }
+        .option-btn.correct {
+            background-color: #c8e6c9 !important;
+            border-color: var(--success) !important;
+            color: #1b5e20;
+            font-weight: 600;
+        }
+        .option-btn.wrong {
+            background-color: #ffcdd2 !important;
+            border-color: var(--danger) !important;
+            color: #b71c1c;
+        }
+        .feedback-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f5f5f5;
+            border-left: 5px solid var(--primary);
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .next-btn { margin-top: 20px; display: none; background-color: var(--accent); }
+        .next-btn:hover { background-color: #ef6c00; }
+
+        /* Result Screen */
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: var(--secondary);
+            border: 6px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto;
+        }
+        .score-number { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+        .status-msg { text-align: center; font-weight: 600; margin-top: 15px; padding: 10px; border-radius: 8px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- หน้าลงทะเบียน -->
+    <div id="start-screen">
+        <h1>🌱 แบบทดสอบ: การขยายพันธุ์พืช</h1>
+        <p class="subtitle">ระดับปริญญาตรี | จำนวน 15 ข้อ (สุ่มข้อสอบและสลับตัวเลือก)</p>
+        <div class="form-group">
+            <label for="studentId">รหัสนักศึกษา</label>
+            <input type="text" id="studentId" placeholder="เช่น 660101234" required>
+        </div>
+        <div class="form-group">
+            <label for="fullName">ชื่อ - นามสกุล</label>
+            <input type="text" id="fullName" placeholder="เช่น นายสมชาย ใจดี" required>
+        </div>
+        <button class="btn" onclick="startQuiz()">เริ่มทำแบบทดสอบ</button>
+    </div>
+
+    <!-- หน้าทำข้อสอบ -->
+    <div id="quiz-screen" class="hidden">
+        <div class="header-bar">
+            <span id="question-counter">ข้อที่ 1 / 15</span>
+            <span id="score-tracker">คะแนน: 0</span>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="question-text" id="question-text"></div>
+        <div class="options-grid" id="options-container"></div>
+        <div class="feedback-box" id="feedback-box"></div>
+        <button class="btn next-btn" id="next-btn" onclick="nextQuestion()">ข้อถัดไป ➔</button>
+    </div>
+
+    <!-- หน้าสรุปผล -->
+    <div id="result-screen" class="hidden">
+        <h1>📊 สรุปผลการทดสอบ</h1>
+        <p class="subtitle" id="student-info-display"></p>
+        <div class="score-circle">
+            <span class="score-number" id="final-score">0/15</span>
+            <span>คะแนน</span>
+        </div>
+        <div id="save-status" class="status-msg">กำลังบันทึกคะแนนไปยัง Google Sheet...</div>
+        <button class="btn" style="margin-top: 20px;" onclick="location.reload()">ทำแบบทดสอบอีกครั้ง</button>
+    </div>
+</div>
+
+<script>
+    // *** นำ URL ของ Google Apps Script Web App มาวางที่นี่ ***
+    const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
+
+    // คลังข้อสอบระดับ ป.ตรี จำนวน 15 ข้อ อ้างอิงจากบทเรียน
+    const rawQuestions = [
+        {
+            q: "ในกระบวนการสร้างแกมีโทไฟต์เพศผู้ (Male gametophyte) ภายในอับเรณู (Anther) เซลล์กำเนิดไมโครสปอร์ (Microspore mother cell, 2n) จะเกิดการแบ่งเซลล์อย่างไรก่อนจะพัฒนาเป็นละอองเรณูที่สมบูรณ์?",
+            options: [
+                "แบ่งแบบ Meiosis ได้ 4 Haploid microspores แล้วแต่ละเซลล์แบ่ง Mitosis ได้ Tube cell และ Generative cell",
+                "แบ่งแบบ Mitosis ได้ 4 Diploid microspores แล้วเกิด Meiosis เพื่อลดจำนวนโครโมโซมลงครึ่งหนึ่ง",
+                "แบ่งแบบ Meiosis ได้ 2 Haploid cells และสลายไป 1 เซลล์ เหลือเพียง Sperm cell ที่พร้อมปฏิสนธิ",
+                "แบ่งแบบ Mitosis 2 ครั้งติดต่อกันภายในโพรงอับเรณู (Pollen sac) เพื่อสร้างละอองเรณูจำนวนมาก"
+            ],
+            answer: 0,
+            rationale: "Microspore mother cell (2n) จะแบ่งตัวแบบ Meiosis I และ II ได้ 4 haploid microspores (n) จากนั้นแต่ละไมโครสปอร์จะแบ่ง Mitosis 1 ครั้ง ได้ละอองเรณูที่มี 2 นิวเคลียส คือ Tube cell และ Generative cell"
+        },
+        {
+            q: "เหตุใดการขยายพันธุ์พืชแบบอาศัยเพศ (Sexual propagation) จึงไม่เป็นที่นิยมในการผลิตกิ่งพันธุ์ไม้ผลเชิงการค้าที่ต้องการความสม่ำเสมอ แต่กลับมีความสำคัญอย่างยิ่งในงานปรับปรุงพันธุ์พืช?",
+            options: [
+                "เกิดการรวมตัวของยีนจากพ่อและแม่ทำให้ลูกเกิดความแปรปรวนทางพันธุกรรม (Genetic variation) ซึ่งใช้คัดเลือกพันธุ์ใหม่ได้",
+                "ต้นที่เพาะจากเมล็ดมักมีระบบรากแก้วที่อ่อนแอและให้ผลผลิตเร็วเกินไปจนต้นโทรม",
+                "การเพาะเมล็ดทำให้เกิดการกลายพันธุ์ระดับโครโมโซม (Polyploidy) ทุกครั้งที่งอก",
+                "เมล็ดพืชไม่สามารถถ่ายทอดลักษณะเด่นทางพันธุกรรมของต้นแม่ไปยังรุ่นลูกได้เลย"
+            ],
+            answer: 0,
+            rationale: "การขยายพันธุ์แบบอาศัยเพศมีการปฏิสนธิและแลกเปลี่ยนชิ้นส่วนโครโมโซม ทำให้ลูกมีความแปรปรวนทางพันธุกรรม ไม่ตรงตามพันธุ์แม่ (Off-type) จึงเหมาะสำหรับสร้างความหลากหลายเพื่อคัดเลือกพันธุ์ใหม่"
+        },
+        {
+            q: "ความแตกต่างทางสัณฐานวิทยาที่สำคัญระหว่างลำต้นดัดแปลงแบบ 'เหง้า (Rhizome)' และ 'ไหล (Stolon/Runner)' คือข้อใด?",
+            options: [
+                "Rhizome เป็นลำต้นที่เจริญเติบโตตามแนวราบใต้ระดับผิวดิน มีข้อปล้องชัดเจนและมีใบเกล็ด ส่วน Stolon มักทอดเลื้อยเหนือผิวดินและเกิดต้นใหม่ที่ข้อ",
+                "Rhizome เป็นรากสะสมอาหารที่ไม่มีข้อปล้อง ส่วน Stolon เป็นลำต้นใต้ดินที่สะสมแป้งเป็นหลัก",
+                "Rhizome พบเฉพาะในพืชใบเลี้ยงคู่เท่านั้น ส่วน Stolon พบเฉพาะในพืชตระกูลหญ้าและสตรอว์เบอร์รี",
+                "Rhizome ไม่สามารถเกิดรากพิเศษ (Adventitious root) ได้ ส่วน Stolon เกิดรากพิเศษได้ตลอดแนวปล้อง"
+            ],
+            answer: 0,
+            rationale: "Rhizome (เช่น ขิง ข่า หญ้าคา) เป็นลำต้นใต้ดินที่ทอดขนานกับพื้นดิน มีข้อ ปล้อง และใบเกล็ด (Scale leaf) ส่วน Stolon (เช่น สตรอว์เบอร์รี) เป็นลำต้นที่เลื้อยไปตามผิวดินและแตกต้นลูกตามข้อ"
+        },
+        {
+            q: "โครงสร้างส่วนใดของ 'หัวแบบบัลบ์ (Bulb)' เช่น หอมหัวใหญ่ ที่ทำหน้าที่หลักในการสะสมอาหารเพื่อการเจริญเติบโตของยอดอ่อน?",
+            options: [
+                "แผ่นใบเกล็ดที่อวบน้ำ (Fleshy scale leaves) ซึ่งเรียงซ้อนกันอยู่บนฐานลำต้นสั้นๆ (Basal plate / Disc)",
+                "ส่วนของลำต้นที่ขยายขนาดใหญ่ขึ้นเป็นทรงกลม (Enlarged stem) โดยมีใบแห้งหุ้มอยู่ด้านนอก",
+                "รากพิเศษ (Adventitious roots) ที่พองตัวออกเพื่อเก็บสะสมน้ำและคาร์โบไฮเดรต",
+                "ก้านช่อดอก (Base of scape) ที่หดสั้นลงและเปลี่ยนสภาพเป็นเนื้อเยื่อสะสมแป้ง"
+            ],
+            answer: 0,
+            rationale: "Bulb มีลำต้นที่แท้จริงเป็นแผ่นแบนสั้นๆ เรียกว่า Disc หรือ Basal plate ส่วนที่อวบน้ำและกินได้คือ Fleshy scale leaves ที่ดัดแปลงมาจากฐานใบ"
+        },
+        {
+            q: "ข้อใดอธิบายความแตกต่างระหว่าง 'ทิวเบอร์ (Tuber)' ของมันฝรั่ง กับ 'ซูโดบัลบ์ (Pseudobulb)' ของกล้วยไม้ได้อย่างถูกต้องที่สุด?",
+            options: [
+                "Tuber เป็นส่วนปลายของลำต้นใต้ดินที่พองออกเพื่อสะสมอาหารและมีตา (Bud/Eye) อยู่รอบหัว ส่วน Pseudobulb เป็นลำต้นเหนือดินที่อวบน้ำ",
+                "Tuber เป็นรากสะสมอาหารที่มีตาข้าง ส่วน Pseudobulb เป็นหัวใต้ดินที่ไม่มีข้อปล้อง",
+                "Tuber เกิดจากการรวมตัวของกาบใบใต้ดิน ส่วน Pseudobulb เกิดจากการขยายตัวของรากอากาศ",
+                "Tuber ขยายพันธุ์ได้เฉพาะการเพาะเมล็ดเท่านั้น ส่วน Pseudobulb ขยายพันธุ์ได้ด้วยการแยกหน่อ"
+            ],
+            answer: 0,
+            rationale: "Tuber (เช่น มันฝรั่ง) คือปลายลำต้นใต้ดิน (Stolon tip) ที่พองโตสะสมแป้ง มีตา (Axillary buds) กระจายอยู่ ส่วน Pseudobulb (ลำลูกกล้วย) คือลำต้นเหนือดินของกล้วยไม้กลุ่ม Sympodial ที่อวบน้ำเพื่อสะสมน้ำและอาหาร"
+        },
+        {
+            q: "ในการขยายพันธุ์พืชด้วย 'ใบ (Leaf cutting)' เช่น ลิ้นมังกร (Sansevieria) หรือ บีโกเนีย (Begonia) ต้นใหม่ที่เกิดขึ้นเกิดจากกระบวนการใด?",
+            options: [
+                "การเกิดตาพิเศษ (Adventitious bud) และรากพิเศษ (Adventitious root) ขึ้นใหม่จากกลุ่มเซลล์บริเวณรอยตัดหรือเส้นใบ",
+                "การเจริญเติบโตของตาข้าง (Axillary bud) ที่ติดมากับก้านใบตั้งแต่เริ่มต้น",
+                "การแบ่งตัวของเนื้อเยื่อเจริญปลายยอด (Apical meristem) ที่ซ่อนอยู่บริเวณขอบใบ",
+                "การงอกของสปอร์ขนาดเล็กที่ฝังตัวอยู่บริเวณปากใบด้านล่าง"
+            ],
+            answer: 0,
+            rationale: "แผ่นใบที่นำมาปักชำไม่มีตาติดมาด้วย (ยกเว้น Leaf-bud cutting) ดังนั้นต้นใหม่จึงต้องเกิดจากการสร้าง Adventitious bud และ Adventitious root ขึ้นมาใหม่จากเซลล์ที่มีคุณสมบัติ Totipotency"
+        },
+        {
+            q: "ในการ 'ตอนกิ่ง (Air layering / Marcotting)' เหตุใดจึงต้องควั่นเปลือกและขูดเนื้อเยื่อเจริญ (Cambium) บริเวณรอยควั่นออกให้หมดก่อนหุ้มด้วยวัสดุตอน?",
+            options: [
+                "เพื่อตัดท่อลำเลียงอาหาร (Phloem) ทำให้ฮอร์โมนออกซินและคาร์โบไฮเดรตสะสมเหนือรอยควั่น และป้องกันไม่ให้เปลือกเชื่อมประสานกันได้อีก",
+                "เพื่อตัดท่อลำเลียงน้ำ (Xylem) ทำให้กิ่งตอนเกิดภาวะขาดน้ำและกระตุ้นให้รากงอกออกมาหาความชื้น",
+                "เพื่อกำจัดเชื้อราและแบคทีเรียที่อาศัยอยู่ในเนื้อไม้ชั้นในสุดของกิ่งตอน",
+                "เพื่อกระตุ้นให้เนื้อไม้ส่วนแก่น (Heartwood) เปลี่ยนสภาพเป็นรากแก้วได้อย่างรวดเร็ว"
+            ],
+            answer: 0,
+            rationale: "การควั่นเปลือกเป็นการเอา Phloem ออก ทำให้น้ำตาลและฮอร์โมน Auxin ที่สร้างจากยอดไหลลงมาคั่งอยู่เหนือรอยแผล กระตุ้นการเกิดราก และการขูด Cambium ออกเพื่อป้องกันการสร้างเนื้อเยื่อเชื่อมแผลจนท่ออาหารต่อกันใหม่"
+        },
+        {
+            q: "เทคนิค 'Compound Layering (การตอนทับกิ่งแบบงูเลื้อย)' มีหลักการปฏิบัติและข้อได้เปรียบอย่างไรเมื่อเทียบกับการตอนกิ่งแบบปกติ?",
+            options: [
+                "โน้มกิ่งที่ยาวและยืดหยุ่นลงฝังดินสลับกับโผล่พ้นดินเป็นระยะๆ เพื่อกระตุ้นให้เกิดรากหลายจุด ทำให้ได้ต้นใหม่หลายต้นจากกิ่งเดียว",
+                "นำกิ่งพันธุ์ดีมาทาบเข้ากับต้นตอหลายต้นพร้อมกันเพื่อเพิ่มระบบรากให้แข็งแรง",
+                "ควั่นกิ่งตอนบนต้นแม่หลายตำแหน่งในกิ่งเดียวแล้วหุ้มด้วยขุยมะพร้าวทั้งหมด",
+                "ตัดกิ่งปักชำเป็นท่อนสั้นๆ แล้วฝังแนวนอนใต้ดินทั้งหมดเพื่อให้แตกยอดทุกข้อ"
+            ],
+            answer: 0,
+            rationale: "Compound layering (Serpentine layering) เหมาะกับไม้เถาหรือไม้พุ่มที่มีกิ่งยาวอ่อนตัวได้ดี โดยฝังส่วนข้อลงดินเป็นช่วงๆ สลับกับส่วนที่โผล่เหนือดินที่มีใบ ทำให้เกิดรากและยอดใหม่ได้หลายต้นในคราวเดียว"
+        },
+        {
+            q: "ปัจจัยทางกายวิภาคที่สำคัญที่สุดซึ่งส่งผลต่อความสำเร็จในการ 'ติดตา (Budding)' และ 'ต่อกิ่ง (Grafting)' คือข้อใด?",
+            options: [
+                "การประกบให้ชั้นเนื้อเยื่อเจริญ (Vascular cambium) ของกิ่งพันธุ์ดีและต้นตอสัมผัสแนบชิดกันมากที่สุด",
+                "การเลือกกิ่งพันธุ์ดีและต้นตอที่มีขนาดเส้นผ่านศูนย์กลางของแก่นไม้ (Heartwood) เท่ากันทุกประการ",
+                "การกรีดเปลือกต้นตอให้ลึกถึงชั้นเนื้อไม้เพื่อให้ท่อไซเล็ม (Xylem) เชื่อมต่อกันทันทีใน 24 ชั่วโมง",
+                "การใช้แผ่นตาที่มีใบแก่ติดอยู่ด้วยเพื่อช่วยสังเคราะห์แสงเลี้ยงแผลขณะรอการประสาน"
+            ],
+            answer: 0,
+            rationale: "หัวใจสำคัญของการติดตาและต่อกิ่งคือการนำ Vascular cambium ของทั้งสองส่วนมาชิดกัน เพื่อสร้างเซลล์ Callus และพัฒนาเป็นท่อลำเลียงน้ำและอาหาร (Xylem & Phloem) เชื่อมต่อกันได้อย่างสมบูรณ์"
+        },
+        {
+            q: "ในการขยายพันธุ์เฟิร์น (เช่น เฟิร์นข้าหลวงหลังลาย) ด้วย 'สปอร์ (Spore)' เมื่อสปอร์ (n) ตกลงบนวัสดุเพาะที่มีความชื้นเหมาะสม โครงสร้างแรกที่เจริญเติบโตขึ้นมาคืออะไร?",
+            options: [
+                "แกมีโทไฟต์ (Gametophyte) หรือแผ่นโปรทัลลัส (Prothallus) สีเขียวขนาดเล็ก ซึ่งจะสร้างอวัยวะสืบพันธุ์เพศผู้และเพศเมียต่อไป",
+                "ต้นสปอโรไฟต์ (Sporophyte) ที่มีใบจริงและรากแก้วพร้อมย้ายปลูกลงกระถางทันที",
+                "เหง้าใต้ดิน (Rhizome) ที่สะสมอาหารไว้รอการแตกใบอ่อนในฤดูฝนถัดไป",
+                "กลุ่มเซลล์แคลลัส (Callus) ที่ไม่มีคลอโรฟิลล์และต้องอาศัยเชื้อราไมคอร์ไรซาในการย่อยสลาย"
+            ],
+            answer: 0,
+            rationale: "วงจรชีวิตแบบสลับของเฟิร์น สปอร์ (n) จะงอกเป็นระยะ Gametophyte (n) ที่เรียกว่า Prothallus จากนั้นจะสร้าง Sperm และ Egg มาปฏิสนธิกันจึงจะเจริญเป็นต้น Sporophyte (2n) ที่เราเห็นทั่วไป"
+        },
+        {
+            q: "หลักการพื้นฐานทางชีววิทยาที่ทำให้สามารถนำชิ้นส่วนเล็กๆ ของพืชมาเพาะเลี้ยงเนื้อเยื่อ (Plant Tissue Culture) จนเจริญเป็นต้นใหม่ที่สมบูรณ์ได้คือคุณสมบัติใด?",
+            options: [
+                "Totipotency (ความสามารถของเซลล์พืชที่มีชีวิตในการแบ่งตัวและพัฒนาเปลี่ยนแปลงไปเป็นต้นพืชที่สมบูรณ์ได้)",
+                "Apical dominance (อิทธิพลของตาปลายยอดในการยับยั้งการเจริญเติบโตของตาข้าง)",
+                "Photoperiodism (การตอบสนองของพืชต่อช่วงความยาวของแสงในรอบวัน)",
+                "Vernalization (การกระตุ้นการออกดอกของพืชด้วยอุณหภูมิต่ำเป็นระยะเวลานาน)"
+            ],
+            answer: 0,
+            rationale: "Totipotency คือทฤษฎีพื้นฐานของการเพาะเลี้ยงเนื้อเยื่อพืช ที่ระบุว่าเซลล์พืชแต่ละเซลล์มีข้อมูลทางพันธุกรรมครบถ้วนและสามารถพัฒนาเป็นต้นใหม่ทั้งต้นได้เมื่ออยู่ในสภาพแวดล้อมและอาหารที่เหมาะสม"
+        },
+        {
+            q: "ในกระบวนการเพาะเลี้ยงเนื้อเยื่อพืช หากต้องการชักนำให้ชิ้นส่วนพืชเกิดกลุ่มเซลล์ที่ยังไม่พัฒนาเป็นอวัยวะ (Callus) หรือชักนำให้เกิด 'ยอดจำนวนมาก (Multiple shoots)' ควรปรับสัดส่วนฮอร์โมนพืชในอาหารสังเคราะห์อย่างไร?",
+            options: [
+                "ใช้ฮอร์โมนกลุ่ม Cytokinin ในความเข้มข้นสูงกว่า Auxin เพื่อกระตุ้นการแตกยอด",
+                "ใช้ฮอร์โมนกลุ่ม Auxin ในความเข้มข้นสูงกว่า Cytokinin เพื่อกระตุ้นการแตกยอด",
+                "ใช้ฮอร์โมน Gibberellin ร่วมกับ Ethylene ในอัตราส่วนที่เท่ากันเพื่อสร้างแคลลัส",
+                "งดการใส่ฮอร์โมนพืชทุกชนิดและเพิ่มปริมาณน้ำตาลซูโครสเป็น 10% เพื่อเร่งการแบ่งเซลล์"
+            ],
+            answer: 0,
+            rationale: "ตามหลักของ Skoog และ Miller: Cytokinin สูงกว่า Auxin จะชักนำให้เกิดยอด (Shoot induction), Auxin สูงกว่า Cytokinin จะชักนำให้เกิดราก (Root induction) และหากมีสัดส่วนใกล้เคียงกันมักเกิด Callus"
+        },
+        {
+            q: "เหตุใดขั้นตอน 'การฟอกฆ่าเชื้อผิวชิ้นส่วนพืช (Surface sterilization)' จึงมีความสำคัญอย่างยิ่งยวดในกระบวนการเพาะเลี้ยงเนื้อเยื่อ?",
+            options: [
+                "เพราะอาหารสังเคราะห์มีน้ำตาลและธาตุอาหารอุดมสมบูรณ์ หากมีจุลินทรีย์ปนเปื้อนจะเจริญเติบโตอย่างรวดเร็วและทำลายชิ้นส่วนพืช",
+                "เพื่อทำลายชั้นคิวติเคิล (Cuticle) และผนังเซลล์ให้หมดไป ทำให้พืชดูดซึมฮอร์โมนได้โดยตรง",
+                "เพื่อกระตุ้นให้เซลล์พืชเกิดการกลายพันธุ์ (Somaclonal variation) ที่ต้านทานโรคได้ดีขึ้น",
+                "เพื่อลดความเป็นกรด-ด่าง (pH) ของเนื้อเยื่อพืชให้เหมาะสมกับวุ้นในขวดเพาะเลี้ยง"
+            ],
+            answer: 0,
+            rationale: "อาหารเพาะเลี้ยงเนื้อเยื่อมีทั้งน้ำตาล วิตามิน และแร่ธาตุ ซึ่งเป็นอาหารชั้นดีของเชื้อราและแบคทีเรีย ซึ่งโตเร็วกว่าเซลล์พืชมาก จึงต้องฟอกฆ่าเชื้อที่ผิวชิ้นส่วนพืชให้ปลอดเชื้อ (Aseptic condition) 100%"
+        },
+        {
+            q: "ขั้นตอนสุดท้ายก่อนนำต้นพืชที่ได้จากการเพาะเลี้ยงเนื้อเยื่อออกปลูกในสภาพแวดล้อมจริง คือ 'การปรับสภาพต้นกล้า (Acclimatization / Hardening)' เหตุใดจึงต้องทำขั้นตอนนี้?",
+            options: [
+                "เนื่องจากต้นกล้าในขวดมีความชื้นสัมพัทธ์สูง ปากใบทำงานไม่สมบูรณ์ และมีชั้นไข (Cuticle) บาง หากออกสู่สภาพปกติทันทีจะคายน้ำจนตาย",
+                "เนื่องจากต้นกล้าในขวดยังไม่มีคลอโรฟิลล์ จึงต้องนำไปฝึกสังเคราะห์แสงในที่มืดก่อนออกแดด",
+                "เพื่อกำจัดสารพิษและฮอร์โมนตกค้างในระบบรากก่อนนำไปสัมผัสกับดินปลูก",
+                "เพื่อกระตุ้นให้รากแก้วของต้นเพาะเลี้ยงเนื้อเยื่องอกยาวขึ้นก่อนลงแปลงปลูก"
+            ],
+            answer: 0,
+            rationale: "ต้นกล้าในสภาพปลอดเชื้อ (In vitro) อยู่ในความชื้นเกือบ 100% ทำให้ชั้น Cuticle บางและปากใบปิดไม่สนิท รวมถึงอาศัยน้ำตาลจากอาหารวุ้นเป็นหลัก จึงต้องค่อยๆ ลดความชื้นและเพิ่มแสงเพื่อให้พืชปรับตัวสร้างอาหารเองได้"
+        },
+        {
+            q: "เปรียบเทียบข้อดีของการขยายพันธุ์พืชด้วยวิธี 'เพาะเลี้ยงเนื้อเยื่อ (Micropropagation)' กับ 'การปักชำ (Cutting)' ข้อใดกล่าวถูกต้องที่สุด?",
+            options: [
+                "การเพาะเลี้ยงเนื้อเยื่อสามารถผลิตต้นพันธุ์ที่ปลอดโรคไวรัส (Virus-free) และได้ปริมาณมากในพื้นที่จำกัดภายในเวลาอันรวดเร็ว",
+                "การเพาะเลี้ยงเนื้อเยื่อมีต้นทุนการผลิตต่ำกว่าการปักชำมากและไม่ต้องอาศัยความชำนาญของบุคลากร",
+                "การปักชำสามารถรักษาความตรงตามพันธุ์ได้ 100% แต่การเพาะเลี้ยงเนื้อเยื่อจะได้ต้นที่กลายพันธุ์ทั้งหมด",
+                "การปักชำสามารถขยายพันธุ์พืชที่ไม่มีเนื้อเยื่อเจริญได้ ในขณะที่การเพาะเลี้ยงเนื้อเยื่อทำไม่ได้"
+            ],
+            answer: 0,
+            rationale: "การเพาะเลี้ยงเนื้อเยื่อ (โดยเฉพาะ Meristem culture) สามารถผลิตต้นพืชที่ปลอดเชื้อไวรัสได้จำนวนมหาศาลในห้องปฏิบัติการ และตรงตามพันธุ์แม่ (Clonal propagation)"
+        }
+    ];
+
+    let shuffledQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let studentId = "";
+    let fullName = "";
+
+    // ฟังก์ชันสลับลำดับอาร์เรย์ (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function startQuiz() {
+        studentId = document.getElementById('studentId').value.trim();
+        fullName = document.getElementById('fullName').value.trim();
+
+        if (!studentId || !fullName) {
+            alert("กรุณากรอกรหัสนักศึกษา และ ชื่อ-นามสกุล ให้ครบถ้วนก่อนเริ่มทำแบบทดสอบ");
+            return;
+        }
+
+        // สลับข้อคำถาม และสลับตัวเลือกภายในแต่ละข้อ
+        shuffledQuestions = shuffleArray(rawQuestions).map(item => {
+            const correctText = item.options[item.answer];
+            const shuffledOptions = shuffleArray(item.options);
+            const newAnswerIndex = shuffledOptions.indexOf(correctText);
+            return {
+                q: item.q,
+                options: shuffledOptions,
+                answer: newAnswerIndex,
+                rationale: item.rationale
+            };
+        });
+
+        currentIndex = 0;
+        score = 0;
+
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const currentQ = shuffledQuestions[currentIndex];
+        const total = shuffledQuestions.length;
+
+        document.getElementById('question-counter').innerText = `ข้อที่ ${currentIndex + 1} / ${total}`;
+        document.getElementById('score-tracker').innerText = `คะแนน: ${score}`;
+        document.getElementById('progress-bar').style.width = `${((currentIndex) / total) * 100}%`;
+        document.getElementById('question-text').innerText = `${currentIndex + 1}. ${currentQ.q}`;
+
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+        
+        const feedbackBox = document.getElementById('feedback-box');
+        feedbackBox.style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+
+        const prefixes = ['ก.', 'ข.', 'ค.', 'ง.'];
+
+        currentQ.options.forEach((optText, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = `${prefixes[idx]} ${optText}`;
+            btn.onclick = () => selectAnswer(idx, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function selectAnswer(selectedIndex, selectedBtn) {
+        const currentQ = shuffledQuestions[currentIndex];
+        const allButtons = document.querySelectorAll('.option-btn');
+        
+        // ปิดการกดปุ่มซ้ำ
+        allButtons.forEach(btn => btn.disabled = true);
+
+        const feedbackBox = document.getElementById('feedback-box');
+        
+        if (selectedIndex === currentQ.answer) {
+            score++;
+            selectedBtn.classList.add('correct');
+            feedbackBox.innerHTML = `<strong>✅ ถูกต้อง!</strong><br>${currentQ.rationale}`;
+            feedbackBox.style.borderLeftColor = 'var(--success)';
+        } else {
+            selectedBtn.classList.add('wrong');
+            allButtons[currentQ.answer].classList.add('correct');
+            feedbackBox.innerHTML = `<strong>❌ ไม่ถูกต้อง</strong><br>${currentQ.rationale}`;
+            feedbackBox.style.borderLeftColor = 'var(--danger)';
+        }
+
+        document.getElementById('score-tracker').innerText = `คะแนน: ${score}`;
+        feedbackBox.style.display = 'block';
+        
+        const nextBtn = document.getElementById('next-btn');
+        nextBtn.innerText = (currentIndex === shuffledQuestions.length - 1) ? "ดูผลคะแนนและส่งข้อมูล ➔" : "ข้อถัดไป ➔";
+        nextBtn.style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        if (currentIndex < shuffledQuestions.length) {
+            renderQuestion();
+        } else {
+            finishQuiz();
+        }
+    }
+
+    function finishQuiz() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        
+        const total = shuffledQuestions.length;
+        document.getElementById('student-info-display').innerText = `รหัส: ${studentId} | ชื่อ: ${fullName}`;
+        document.getElementById('final-score').innerText = `${score}/${total}`;
+
+        sendScoreToGoogleSheet(studentId, fullName, score, total);
+    }
+
+    function sendScoreToGoogleSheet(id, name, userScore, totalQuestions) {
+        const statusEl = document.getElementById('save-status');
+        
+        if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL' || !SCRIPT_URL) {
+            statusEl.style.backgroundColor = '#fff3e0';
+            statusEl.style.color = '#e65100';
+            statusEl.innerText = "⚠️ ยังไม่ได้ตั้งค่า URL ของ Google Apps Script (คะแนนยังไม่ถูกบันทึกลง Sheet)";
+            return;
+        }
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // สำคัญสำหรับส่งข้อมูลข้ามโดเมนไปยัง Google Apps Script
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                studentId: id,
+                fullName: name,
+                score: userScore,
+                total: totalQuestions
+            })
+        })
+        .then(() => {
+            statusEl.style.backgroundColor = '#e8f5e9';
+            statusEl.style.color = '#1b5e20';
+            statusEl.innerText = "✅ บันทึกคะแนนลงใน Google Sheet เรียบร้อยแล้ว!";
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            statusEl.style.backgroundColor = '#ffebee';
+            statusEl.style.color = '#c62828';
+            statusEl.innerText = "❌ เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาแคปหน้าจอนี้ส่งอาจารย์";
+        });
+    }
+</script>
+
+</body>
+</html>
